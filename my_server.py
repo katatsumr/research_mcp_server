@@ -39,6 +39,7 @@ def csv_to_json(path):
     json_data = df.to_json(force_ascii=False)
     return df, json_data
 
+
 data_1 = "設問1データ.csv"
 data_2 = "設問2データ.csv"
 data_3 = "設問3データ.csv"
@@ -51,25 +52,27 @@ df_3, user_input_3 = csv_to_json(data_3)
 df_4, user_input_4 = csv_to_json(data_4)
 df_5, user_input_5 = csv_to_json(data_5)
 
-MOCK_DATABASE = {}
+MOCK_DATABASE = {
+    "学籍番号とGPA":user_input_1,
+    "IRアンケート":user_input_2,
+    "成績":user_input_3,
+    "授業評価アンケート":user_input_4,
+    "学科とGPA":user_input_5
+}
 
 
 @mcp.tool()
-def search_thesis_topic(keyword: str) -> str:
+def search_csv_data(keyword: str) -> str:
     """
-    指定されたキーワードに関連するデータを返却します。
-    対応キーワード:
+    キーワード（例：設問1）に基づいて、対応するCSVデータのJSON情報を取得します。
     """
-    print(f"DEBUG: 検索キーワード '{keyword}' を受け取りました。")
+    # 辞書からデータを取得
+    result = MOCK_DATABASE.get(keyword)
 
-    # 実際のDB接続の代わりに辞書から取得（段階的実装のステップ1）
-    # .get() の第2引数で、見つからなかった時のメッセージを指定できます
-    result = MOCK_DATABASE.get(
-        keyword,
-        f"キーワード '{keyword}' に関するデータは現在のDBには登録されていません。"
-    )
-
-    return result
+    if result:
+        return result
+    else:
+        return f"エラー：キーワード '{keyword}' に一致するデータが見つかりませんでした。"
 
 
 if __name__ == "__main__":
