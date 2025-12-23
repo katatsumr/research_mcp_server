@@ -1,6 +1,7 @@
 from fastmcp import FastMCP
 import pandas as pd
 import asyncio
+from fastmcp import Client
 
 # サーバーに名前を付ける
 mcp = FastMCP(name="卒論用MCPサーバー")
@@ -21,7 +22,6 @@ USER_PERMISSIONS = {
     "003": "学生"
 }
 
-
 # ユーザー権限を取得するリソース
 @mcp.resource("auth://{user_id}/permissions")
 def get_user_permissions(user_id: str) -> str:
@@ -40,11 +40,11 @@ def csv_to_json(path):
     return df, json_data
 
 
-data_1 = "設問1データ.csv"
-data_2 = "設問2データ.csv"
-data_3 = "設問3データ.csv"
-data_4 = "設問4データ.csv"
-data_5 = "設問5データ.csv"
+data_1 = "data/設問1データ.csv"
+data_2 = "data/設問2データ.csv"
+data_3 = "data/設問3データ.csv"
+data_4 = "data/設問4データ.csv"
+data_5 = "data/設問5データ.csv"
 
 df_1, user_input_1 = csv_to_json(data_1)
 df_2, user_input_2 = csv_to_json(data_2)
@@ -64,7 +64,7 @@ MOCK_DATABASE = {
 @mcp.tool()
 def search_csv_data(keyword: str) -> str:
     """
-    キーワード（例：設問1）に基づいて、対応するCSVデータのJSON情報を取得します。
+    キーワードに基づいて、対応するCSVデータのJSON情報を取得します。
     """
     # 辞書からデータを取得
     result = MOCK_DATABASE.get(keyword)
@@ -74,6 +74,22 @@ def search_csv_data(keyword: str) -> str:
     else:
         return f"エラー：キーワード '{keyword}' に一致するデータが見つかりませんでした。"
 
+# ローカルでツールやリソースを呼び出す関数
+async def test_server_locally():
+    print("\n--- ローカルサーバーのテスト ---")
+    # クライアントをサーバーオブジェクトに直接ポイントします
+    client = Client(mcp)
+
+    # クライアントは非同期なので、非同期コンテキストマネージャーを使用します
+    async with client:
+        res_permission = await client.read_resource("auth://001/permissions")
+        print(f"権限：: {res_permission}")
+
+        res_tool = await client.call_tool("search_csv_data", {"keyword": "IRアンケート"})
+        print(f"データ：{res_tool}")
+
+# ローカルテスト関数を実行
+asyncio.run(test_server_locally())
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
